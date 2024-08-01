@@ -5,8 +5,8 @@ const stompClient = new StompJs.Client({
 stompClient.onConnect = (frame) => {
     setConnected(true);
     console.log('Connected: ' + frame);
-    stompClient.subscribe('/topic/greetings', (greeting) => {
-        showGreeting(JSON.parse(greeting.body).content);
+    stompClient.subscribe('/topic/pokersession', (pokerSession) => {
+        updatePokerSession(JSON.parse(pokerSession.body));
     });
 };
 
@@ -41,20 +41,35 @@ function disconnect() {
     console.log('Disconnected');
 }
 
-function sendName() {
+function add() {
     stompClient.publish({
-        destination: '/app/hello',
-        body: JSON.stringify({'name': $('#name').val()})
+        destination: '/app/add',
+        body: $('#name').val()
     });
 }
 
-function showGreeting(message) {
-    $('#greetings').append('<tr><td>' + message + '</td></tr>');
+function sendVote() {
+    stompClient.publish({
+        destination: '/app/vote',
+        body: JSON.stringify({
+            name: $('#name').val(),
+            vote: $('#vote').val()
+        })
+    });
+}
+
+function updatePokerSession(pokerSession) {
+    let votes = $('#votes');
+    votes.empty();
+    for (const [name, vote] of Object.entries(pokerSession)) {
+        votes.append('<tr><td>' + name + '</td><td>' + vote + '</td></tr>');
+    }
 }
 
 $(function() {
     $('form').on('submit', (e) => e.preventDefault());
     $('#connect').click(() => connect());
     $('#disconnect').click(() => disconnect());
-    $('#send').click(() => sendName());
+    $('#join').click(() => add());
+    $('#sendVote').click(() => sendVote());
 });

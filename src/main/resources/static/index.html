@@ -14,7 +14,7 @@
             Javascript and reload this page!</h2></noscript>
         <div class="container" id="main-content">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <form class="form-inline">
                         <div class="form-group">
                             <label for="connect">WebSocket connection:</label>
@@ -24,13 +24,22 @@
                         </div>
                     </form>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <form class="form-inline">
                         <div class="form-group">
                             <label for="name">What is your name?</label>
                             <input class="form-control" id="name" placeholder="Your name here..." type="text">
                         </div>
-                        <button class="btn btn-default" id="send" type="submit">Send</button>
+                        <button class="btn btn-default" id="join" type="submit">Add</button>
+                    </form>
+                </div>
+                <div class="col-md-4">
+                    <form class="form-inline">
+                        <div class="form-group">
+                            <label for="name">Vote:</label>
+                            <input class="form-control" id="vote" placeholder="Your vote here..." type="text">
+                        </div>
+                        <button class="btn btn-default" id="sendVote" type="submit">Add</button>
                     </form>
                 </div>
             </div>
@@ -39,10 +48,11 @@
                     <table class="table table-striped" id="conversation">
                         <thead>
                             <tr>
-                                <th>Greetings</th>
+                                <th>Name</th>
+                                <th>Vote</th>
                             </tr>
                         </thead>
-                        <tbody id="greetings"></tbody>
+                        <tbody id="votes"></tbody>
                     </table>
                 </div>
             </div>
