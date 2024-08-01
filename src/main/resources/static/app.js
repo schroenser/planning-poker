@@ -1,12 +1,12 @@
 const stompClient = new StompJs.Client({
-    brokerURL: 'ws://localhost:8080/gs-guide-websocket'
+    brokerURL: 'ws://localhost:8080/websocket'
 });
 
 stompClient.onConnect = (frame) => {
     setConnected(true);
     console.log('Connected: ' + frame);
-    stompClient.subscribe('/topic/pokersession', (pokerSession) => {
-        updatePokerSession(JSON.parse(pokerSession.body));
+    stompClient.subscribe('/topic/' + window.location.hash.substring(1), (response) => {
+        updateVotes(JSON.parse(response.body));
     });
 };
 
@@ -41,28 +41,36 @@ function disconnect() {
     console.log('Disconnected');
 }
 
-function add() {
+function join() {
     stompClient.publish({
-        destination: '/app/add',
-        body: $('#name').val()
-    });
-}
-
-function sendVote() {
-    stompClient.publish({
-        destination: '/app/vote',
+        destination: '/app/' + window.location.hash.substring(1) + '/join',
         body: JSON.stringify({
-            name: $('#name').val(),
-            vote: $('#vote').val()
+            name: $('#name').val()
         })
     });
 }
 
-function updatePokerSession(pokerSession) {
+function reset() {
+    stompClient.publish({
+        destination: '/app/' + window.location.hash.substring(1) + '/reset'
+    });
+}
+
+function vote() {
+    stompClient.publish({
+        destination: '/app/' + window.location.hash.substring(1) + '/vote',
+        body: JSON.stringify({
+            name: $('#name').val(),
+            value: $('#value').val()
+        })
+    });
+}
+
+function updateVotes(values) {
     let votes = $('#votes');
     votes.empty();
-    for (const [name, vote] of Object.entries(pokerSession)) {
-        votes.append('<tr><td>' + name + '</td><td>' + vote + '</td></tr>');
+    for (const [name, value] of Object.entries(values)) {
+        votes.append('<tr><td>' + name + '</td><td>' + value + '</td></tr>');
     }
 }
 
@@ -70,6 +78,6 @@ $(function() {
     $('form').on('submit', (e) => e.preventDefault());
     $('#connect').click(() => connect());
     $('#disconnect').click(() => disconnect());
-    $('#join').click(() => add());
-    $('#sendVote').click(() => sendVote());
+    $('#join').click(() => join());
+    $('#vote').click(() => vote());
 });

@@ -1,37 +1,62 @@
 package com.example.messagingstompwebsocket;
 
+import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 @Controller
 @RequiredArgsConstructor
 public class PokerController
 {
-    private final PokerSession pokerSession;
+    private final LoadingCache<String, Map<String, String>> rooms = CacheBuilder.newBuilder()
+        .expireAfterAccess(Duration.ofHours(1))
+        .build(new CacheLoader<>()
+        {
+            public Map<String, String> load(String room)
+            {
+                return new ConcurrentHashMap<>();
+            }
+        });
 
-    @MessageMapping("/add")
-    @SendTo("/topic/pokersession")
-    public Map<String, String> addPlayer(String name)
+    @MessageMapping("/{room}/join")
+    @SendTo("/topic/{room}")
+    @SneakyThrows
+    public Map<String, String> join(@DestinationVariable String room, JoinDto body)
     {
-        return pokerSession.addPlayer(name);
+        Map<String, String> valueByName = rooms.get(room);
+        valueByName.put(body.getName(), "");
+        return valueByName;
     }
 
-    @MessageMapping("/reset")
-    @SendTo("/topic/pokersession")
-    public Map<String, String> resetVotes()
+    @MessageMapping("/{room}/reset")
+    @SendTo("/topic/{room}")
+    @SneakyThrows
+    public Map<String, String> resetVotes(@DestinationVariable String room)
     {
-        return pokerSession.resetVotes();
+        Map<String, String> valueByName = rooms.get(room);
+        valueByName.replaceAll((name, vote) -> "");
+        return valueByName;
     }
 
-    @MessageMapping("/vote")
-    @SendTo("/topic/pokersession")
-    public Map<String, String> vote(Vote vote)
+    @MessageMapping("/{room}/vote")
+    @SendTo("/topic/{room}")
+    @SneakyThrows
+    public Map<String, String> vote(@DestinationVariable String room, VoteDto body)
     {
-        return pokerSession.vote(vote.getName(), vote.getVote());
+        Map<String, String> valueByName = rooms.get(room);
+        valueByName.put(body.getName(), body.getValue());
+        return valueByName;
     }
 }

@@ -7,8 +7,7 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @Jacksonized
 @Builder
-public class Vote
+public class JoinDto
 {
     String name;
-    String vote;
 }
